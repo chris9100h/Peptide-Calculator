@@ -52,7 +52,8 @@
       font-weight: 500;
     }
 
-    input, select {
+    /* === ALL INPUTS (text + date) === */
+    input {
       width: 100%;
       background: var(--input);
       border: none;
@@ -62,6 +63,27 @@
       font-size: 20px;
       font-weight: 500;
       box-sizing: border-box;
+    }
+
+    /* Spezieller Fix für date-Input auf Handy */
+    input[type="date"] {
+      width: 100% !important;
+      background: var(--input) !important;
+      border: none !important;
+      border-radius: 12px !important;
+      padding: 16px 18px !important;
+      color: white !important;
+      font-size: 20px !important;
+      font-weight: 500 !important;
+      box-sizing: border-box !important;
+      appearance: none;               /* entfernt native Handy-Styling */
+      -webkit-appearance: none;
+    }
+
+    /* Kalender-Icon auf Handy etwas kleiner machen */
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+      opacity: 0.6;
     }
 
     .toggle-group {
@@ -141,7 +163,6 @@
       display: none;
     }
 
-    /* Single label – exactly 3cm wide × 1.2cm high with orange frame */
     .print-label {
       width: 3cm;
       height: 1.2cm;
@@ -155,7 +176,7 @@
       flex-direction: column;
       justify-content: center;
       font-family: Arial, sans-serif;
-      margin: 4mm 0;               /* vertical spacing between labels */
+      margin: 4mm 0;
     }
 
     .print-label .title {
@@ -188,33 +209,19 @@
       padding-top: 2px;
     }
 
-    /* Print settings – only one page, labels stacked vertically */
     @media print {
       @page {
         margin: 0;
         size: A4 portrait;
       }
-
-      body {
-        margin: 0;
-        padding: 10mm 8mm;
-      }
-
-      #mainApp,
-      #mainApp * {
-        display: none !important;
-      }
-
+      body { margin: 0; padding: 10mm 8mm; }
+      #mainApp, #mainApp * { display: none !important; }
       #printContainer {
         display: flex !important;
         flex-direction: column;
         align-items: center;
         gap: 6mm;
         width: 100%;
-      }
-
-      .print-label {
-        box-shadow: none;
       }
     }
 
@@ -270,7 +277,7 @@
     <div id="result" class="result">
       <div>Draw up <span id="units" class="units">20</span> Units</div>
       <div style="margin-top: 10px; font-size: 18px; color: #aaa;">
-        corresponds to <span id="ml">0.20</span> ml
+        corresponds to <span id="ml">0.200</span> ml
       </div>
     </div>
 
@@ -297,7 +304,6 @@
     </div>
   </div>
 
-  <!-- Hidden container for printing -->
   <div id="printContainer"></div>
 
   <script>
@@ -343,12 +349,10 @@
       const volumeMl = dose / concentration;
       const units = Math.round(volumeMl * 100);
 
-      // Show result
       document.getElementById('units').textContent = units;
       document.getElementById('ml').textContent = volumeMl.toFixed(3);
       document.getElementById('result').style.display = 'block';
 
-      // Update preview
       document.getElementById('previewTitle').textContent = peptideName.toUpperCase();
       document.getElementById('previewLine1').textContent = `${document.getElementById('vial').value}${vialUnit} COA / ${water}ml BAC`;
       document.getElementById('previewLine2').textContent = 
