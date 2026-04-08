@@ -52,7 +52,6 @@
       font-weight: 500;
     }
 
-    /* === ALL INPUTS (text + date) === */
     input {
       width: 100%;
       background: var(--input);
@@ -65,7 +64,6 @@
       box-sizing: border-box;
     }
 
-    /* Spezieller Fix für date-Input auf Handy */
     input[type="date"] {
       width: 100% !important;
       background: var(--input) !important;
@@ -74,13 +72,9 @@
       padding: 16px 18px !important;
       color: white !important;
       font-size: 20px !important;
-      font-weight: 500 !important;
-      box-sizing: border-box !important;
-      appearance: none;               /* entfernt native Handy-Styling */
-      -webkit-appearance: none;
+      appearance: none;
     }
 
-    /* Kalender-Icon auf Handy etwas kleiner machen */
     input[type="date"]::-webkit-calendar-picker-indicator {
       filter: invert(1);
       opacity: 0.6;
@@ -142,9 +136,6 @@
       font-weight: 800;
       color: var(--accent);
     }
-
-    /* ====================== PRINTABLE LABELS ====================== */
-    #mainApp { display: block; }
 
     .label-section {
       margin-top: 24px;
@@ -210,10 +201,7 @@
     }
 
     @media print {
-      @page {
-        margin: 0;
-        size: A4 portrait;
-      }
+      @page { margin: 0; size: A4 portrait; }
       body { margin: 0; padding: 10mm 8mm; }
       #mainApp, #mainApp * { display: none !important; }
       #printContainer {
@@ -242,13 +230,13 @@
     <!-- Peptide Name -->
     <div class="card">
       <label>Peptide Name</label>
-      <input type="text" id="peptideName" value="MT2" placeholder="e.g. MT2, Semaglutide...">
+      <input type="text" id="peptideName" placeholder="e.g. MT2, Semaglutide...">
     </div>
 
     <!-- Vial Capacity -->
     <div class="card">
       <label>Vial capacity</label>
-      <input type="text" id="vial" value="36">
+      <input type="text" id="vial" placeholder="e.g. 10 or 36">
       <div class="toggle-group">
         <button id="vial-mg" class="toggle-btn active" onclick="setVialUnit('mg')">mg</button>
         <button id="vial-mcg" class="toggle-btn" onclick="setVialUnit('mcg')">mcg</button>
@@ -258,13 +246,13 @@
     <!-- Bacteriostatic Water -->
     <div class="card">
       <label>Bacteriostatic water (ml)</label>
-      <input type="text" id="water" value="1.8">
+      <input type="text" id="water" placeholder="e.g. 2 or 1.8">
     </div>
 
     <!-- Desired Dose -->
     <div class="card">
       <label>Desired Dose</label>
-      <input type="text" id="dose" value="4">
+      <input type="text" id="dose" placeholder="e.g. 4 or 250">
       <div class="toggle-group">
         <button id="dose-mg" class="toggle-btn active" onclick="setDoseUnit('mg')">mg</button>
         <button id="dose-mcg" class="toggle-btn" onclick="setDoseUnit('mcg')">mcg</button>
@@ -287,9 +275,9 @@
       
       <div id="labelPreview" class="label-preview">
         <div style="font-size:22px; font-weight:800; color:#ff9500;" id="previewTitle">MT2</div>
-        <div style="font-size:14px; font-weight:600;" id="previewLine1">36mg COA / 1.8ml BAC</div>
-        <div style="font-size:13px;" id="previewLine2">20.00mg / ml | 4mg = 20u (0.200ml)</div>
-        <div style="font-size:12px; margin-top:8px; border-top:1px solid #555; padding-top:6px;" id="previewDate">Reconst. Date | 08.04.2026</div>
+        <div style="font-size:14px; font-weight:600;" id="previewLine1"></div>
+        <div style="font-size:13px;" id="previewLine2"></div>
+        <div style="font-size:12px; margin-top:8px; border-top:1px solid #555; padding-top:6px;" id="previewDate"></div>
       </div>
 
       <button onclick="printLabels()" 
@@ -392,9 +380,11 @@
       window.print();
     }
 
-    // Add reconstitution date field
+    // Reset all fields on load (except date)
     window.onload = () => {
       const today = new Date().toISOString().split('T')[0];
+
+      // Create date card
       const dateCard = document.createElement('div');
       dateCard.className = 'card';
       dateCard.innerHTML = `
@@ -402,6 +392,12 @@
         <input type="date" id="reconstDate" value="${today}">
       `;
       document.querySelectorAll('.card')[0].after(dateCard);
+
+      // Clear all input fields
+      document.getElementById('peptideName').value = '';
+      document.getElementById('vial').value = '';
+      document.getElementById('water').value = '';
+      document.getElementById('dose').value = '';
     };
   </script>
 </body>
