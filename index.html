@@ -1,186 +1,404 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Peptid Calculator</title>
+  <title>Peptide Calculator</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
+    :root {
+      --bg: #0a0a0a;
+      --card: #121212;
+      --input: #1e1e1e;
+      --accent: #ff9500;
+      --text: #ffffff;
+      --secondary: #aaaaaa;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #0f0f0f;
-      color: #fff;
+      background: var(--bg);
+      color: var(--text);
       margin: 0;
       padding: 16px;
+      min-height: 100vh;
     }
-    .container {
-      max-width: 420px;
-      margin: 0 auto;
-    }
-    h1 {
+
+    .header {
       text-align: center;
-      margin-bottom: 24px;
-      font-size: 24px;
+      font-size: 23px;
+      font-weight: 700;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: var(--accent);
     }
+
     .card {
-      background: #1f1f1f;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px;
+      background: var(--card);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
     }
+
     label {
       display: block;
-      margin-bottom: 8px;
       font-size: 15px;
-      color: #ccc;
+      color: var(--secondary);
+      margin-bottom: 10px;
+      font-weight: 500;
     }
+
     input, select {
       width: 100%;
-      padding: 14px;
-      background: #2a2a2a;
+      background: var(--input);
       border: none;
-      border-radius: 10px;
-      color: white;
-      font-size: 18px;
-    }
-    .unit-selector {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-    }
-    .unit-selector button {
-      flex: 1;
-      padding: 10px;
-      background: #2a2a2a;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-    .unit-selector button.active {
-      background: #2481cc;
-    }
-    button#calcBtn {
-      width: 100%;
-      padding: 16px;
-      background: #2481cc;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 18px;
-      font-weight: 600;
-      margin-top: 10px;
-    }
-    .result {
-      background: #1a3c1a;
       border-radius: 12px;
-      padding: 24px 16px;
+      padding: 16px 18px;
+      color: white;
+      font-size: 20px;
+      font-weight: 500;
+      box-sizing: border-box;
+    }
+
+    .toggle-group {
+      display: flex;
+      background: var(--input);
+      border-radius: 12px;
+      padding: 5px;
+      margin-top: 10px;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.5);
+    }
+
+    .toggle-btn {
+      flex: 1;
+      padding: 12px 0;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      background: transparent;
+      color: var(--secondary);
+      transition: all 0.2s;
+    }
+
+    .toggle-btn.active {
+      background: var(--accent);
+      color: black;
+      box-shadow: 0 2px 8px rgba(255, 149, 0, 0.4);
+    }
+
+    #calcBtn {
+      width: 100%;
+      background: var(--accent);
+      color: black;
+      border: none;
+      border-radius: 14px;
+      padding: 18px;
+      font-size: 19px;
+      font-weight: 700;
+      margin: 10px 0 20px;
+      box-shadow: 0 6px 16px rgba(255, 149, 0, 0.35);
+    }
+
+    .result {
+      background: var(--card);
+      border: 2px solid var(--accent);
+      border-radius: 16px;
+      padding: 26px 20px;
       text-align: center;
-      margin: 24px 0;
-      font-size: 28px;
-      font-weight: bold;
+      margin: 20px 0;
+      display: none;
+      box-shadow: 0 6px 20px rgba(255, 149, 0, 0.2);
+    }
+
+    .result .units {
+      font-size: 48px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    /* ====================== PRINTABLE LABELS ====================== */
+    #mainApp { display: block; }
+
+    .label-section {
+      margin-top: 24px;
+    }
+
+    .label-preview {
+      background: var(--card);
+      border: 3px solid var(--accent);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    #printContainer {
       display: none;
     }
-    .info {
-      font-size: 14px;
-      color: #888;
+
+    /* Single label – exactly 3cm wide × 1.2cm high with orange frame */
+    .print-label {
+      width: 3cm;
+      height: 1.2cm;
+      border: 2.5px solid #ff9500;
+      border-radius: 8px;
+      background: white;
+      color: black;
+      padding: 4px 6px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      font-family: Arial, sans-serif;
+      margin: 4mm 0;               /* vertical spacing between labels */
+    }
+
+    .print-label .title {
+      font-size: 10pt;
+      font-weight: 800;
+      color: #ff9500;
       text-align: center;
-      margin-top: 20px;
+      margin-bottom: 2px;
+      line-height: 1;
+    }
+
+    .print-label .line1 {
+      font-size: 7.2pt;
+      font-weight: 600;
+      text-align: center;
+      line-height: 1.1;
+    }
+
+    .print-label .line2 {
+      font-size: 6.8pt;
+      text-align: center;
+      line-height: 1.1;
+    }
+
+    .print-label .date {
+      font-size: 6.2pt;
+      text-align: center;
+      margin-top: 3px;
+      border-top: 1px solid #ddd;
+      padding-top: 2px;
+    }
+
+    /* Print settings – only one page, labels stacked vertically */
+    @media print {
+      @page {
+        margin: 0;
+        size: A4 portrait;
+      }
+
+      body {
+        margin: 0;
+        padding: 10mm 8mm;
+      }
+
+      #mainApp,
+      #mainApp * {
+        display: none !important;
+      }
+
+      #printContainer {
+        display: flex !important;
+        flex-direction: column;
+        align-items: center;
+        gap: 6mm;
+        width: 100%;
+      }
+
+      .print-label {
+        box-shadow: none;
+      }
+    }
+
+    .info {
+      text-align: center;
+      color: var(--secondary);
+      font-size: 14.5px;
+      margin-top: 8px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🧪 Peptid Syringe Calculator</h1>
-
-    <div class="card">
-      <label>Vial capacity (mg)</label>
-      <input type="text" id="vial" value="36" placeholder="z.B. 36 oder 10,5">
+  <div id="mainApp">
+    <div class="header">
+      🧪 Peptide Calculator
     </div>
 
+    <!-- Peptide Name -->
+    <div class="card">
+      <label>Peptide Name</label>
+      <input type="text" id="peptideName" value="MT2" placeholder="e.g. MT2, Semaglutide...">
+    </div>
+
+    <!-- Vial Capacity -->
+    <div class="card">
+      <label>Vial capacity</label>
+      <input type="text" id="vial" value="36">
+      <div class="toggle-group">
+        <button id="vial-mg" class="toggle-btn active" onclick="setVialUnit('mg')">mg</button>
+        <button id="vial-mcg" class="toggle-btn" onclick="setVialUnit('mcg')">mcg</button>
+      </div>
+    </div>
+
+    <!-- Bacteriostatic Water -->
     <div class="card">
       <label>Bacteriostatic water (ml)</label>
-      <input type="text" id="water" value="1.8" placeholder="z.B. 1,8 oder 2">
+      <input type="text" id="water" value="1.8">
     </div>
 
+    <!-- Desired Dose -->
     <div class="card">
-      <label>Gewünschte Dosis</label>
-      <input type="text" id="dose" value="4" placeholder="z.B. 4 oder 250">
-      
-      <div class="unit-selector">
-        <button id="btn-mg" class="active" onclick="setUnit('mg')">mg</button>
-        <button id="btn-mcg" onclick="setUnit('mcg')">mcg</button>
+      <label>Desired Dose</label>
+      <input type="text" id="dose" value="4">
+      <div class="toggle-group">
+        <button id="dose-mg" class="toggle-btn active" onclick="setDoseUnit('mg')">mg</button>
+        <button id="dose-mcg" class="toggle-btn" onclick="setDoseUnit('mcg')">mcg</button>
       </div>
     </div>
 
-    <button id="calcBtn" onclick="calculate()">Berechnen</button>
+    <button id="calcBtn" onclick="calculate()">Calculate</button>
 
+    <!-- Result -->
     <div id="result" class="result">
-      <div>Ziehe <span id="units" style="color:#4ade80">20</span> Units auf</div>
-      <div style="font-size:16px; margin-top:8px; color:#aaa;">
-        entspricht <span id="ml">0,20</span> ml
+      <div>Draw up <span id="units" class="units">20</span> Units</div>
+      <div style="margin-top: 10px; font-size: 18px; color: #aaa;">
+        corresponds to <span id="ml">0.20</span> ml
       </div>
+    </div>
+
+    <!-- Label Section -->
+    <div id="labelSection" class="label-section" style="display: none;">
+      <h2 style="text-align:center; margin:20px 0 12px; color:#ff9500; font-size:18px;">Vial Label (3cm × 1.2cm)</h2>
+      
+      <div id="labelPreview" class="label-preview">
+        <div style="font-size:22px; font-weight:800; color:#ff9500;" id="previewTitle">MT2</div>
+        <div style="font-size:14px; font-weight:600;" id="previewLine1">36mg COA / 1.8ml BAC</div>
+        <div style="font-size:13px;" id="previewLine2">20.00mg / ml | 4mg = 20u (0.200ml)</div>
+        <div style="font-size:12px; margin-top:8px; border-top:1px solid #555; padding-top:6px;" id="previewDate">Reconst. Date | 08.04.2026</div>
+      </div>
+
+      <button onclick="printLabels()" 
+              style="width:100%; background:#ff9500; color:black; border:none; border-radius:14px; padding:16px; font-size:18px; font-weight:700;">
+        🖨️ Print 5 Labels
+      </button>
     </div>
 
     <div class="info">
       100 Units = 1 ml<br>
-      Empfohlene Spritzen: 0,3 ml / 0,5 ml / 1 ml
+      Recommended syringes: 0.3 ml / 0.5 ml / 1 ml
     </div>
   </div>
+
+  <!-- Hidden container for printing -->
+  <div id="printContainer"></div>
 
   <script>
     Telegram.WebApp.ready();
     Telegram.WebApp.expand();
 
-    let doseUnit = 'mg';   // Standard: mg
+    let vialUnit = 'mg';
+    let doseUnit = 'mg';
 
-    function setUnit(unit) {
-      doseUnit = unit;
-      document.getElementById('btn-mg').classList.toggle('active', unit === 'mg');
-      document.getElementById('btn-mcg').classList.toggle('active', unit === 'mcg');
+    function setVialUnit(unit) {
+      vialUnit = unit;
+      document.getElementById('vial-mg').classList.toggle('active', unit === 'mg');
+      document.getElementById('vial-mcg').classList.toggle('active', unit === 'mcg');
     }
 
-    // Ersetzt Komma durch Punkt und entfernt ungültige Zeichen
+    function setDoseUnit(unit) {
+      doseUnit = unit;
+      document.getElementById('dose-mg').classList.toggle('active', unit === 'mg');
+      document.getElementById('dose-mcg').classList.toggle('active', unit === 'mcg');
+    }
+
     function parseNumber(str) {
       if (!str) return NaN;
-      str = str.trim().replace(',', '.');           // Komma → Punkt
-      str = str.replace(/[^0-9.-]/g, '');           // Nur Zahlen, Punkt und Minus erlauben
+      str = str.trim().replace(',', '.').replace(/[^0-9.-]/g, '');
       return parseFloat(str);
     }
 
     function calculate() {
-      const vialStr = document.getElementById('vial').value;
-      const waterStr = document.getElementById('water').value;
-      const doseStr = document.getElementById('dose').value;
+      let vial = parseNumber(document.getElementById('vial').value);
+      const water = parseNumber(document.getElementById('water').value);
+      let dose = parseNumber(document.getElementById('dose').value);
+      const peptideName = document.getElementById('peptideName').value.trim() || "Peptide";
 
-      const vial = parseNumber(vialStr);
-      const water = parseNumber(waterStr);
-      let dose = parseNumber(doseStr);
+      const originalDoseStr = document.getElementById('dose').value.trim();
+      const originalDoseUnitDisplay = doseUnit;
 
-      // Wenn irgendwas ungültig ist → nichts tun
-      if (!vial || !water || !dose || water <= 0) {
-        return;
-      }
+      if (!vial || !water || !dose || water <= 0) return;
 
-      // mcg in mg umrechnen
-      if (doseUnit === 'mcg') {
-        dose = dose / 1000;
-      }
+      if (vialUnit === 'mcg') vial /= 1000;
+      if (doseUnit === 'mcg') dose /= 1000;
 
-      const concentration = vial / water;        // mg/ml
-      const volumeMl = dose / concentration;     // benötigte ml
-      const units = Math.round(volumeMl * 100);  // Units auf Insulin-Spritze
+      const concentration = vial / water;
+      const volumeMl = dose / concentration;
+      const units = Math.round(volumeMl * 100);
 
-      // Ergebnis anzeigen
+      // Show result
       document.getElementById('units').textContent = units;
-      document.getElementById('ml').textContent = volumeMl.toFixed(2).replace('.', ',');
+      document.getElementById('ml').textContent = volumeMl.toFixed(3);
       document.getElementById('result').style.display = 'block';
 
-      // leichte Vibration
-      if (Telegram.WebApp.HapticFeedback) {
-        Telegram.WebApp.HapticFeedback.impactOccurred("light");
-      }
+      // Update preview
+      document.getElementById('previewTitle').textContent = peptideName.toUpperCase();
+      document.getElementById('previewLine1').textContent = `${document.getElementById('vial').value}${vialUnit} COA / ${water}ml BAC`;
+      document.getElementById('previewLine2').textContent = 
+        `${concentration.toFixed(2)}mg / ml | ${originalDoseStr}${originalDoseUnitDisplay} = ${units}u (${volumeMl.toFixed(3)}ml)`;
+      document.getElementById('previewDate').innerHTML = 
+        `Reconst. Date | <strong>${new Date(document.getElementById('reconstDate').value).toLocaleDateString('de-DE')}</strong>`;
+
+      window.currentLabelData = {
+        name: peptideName.toUpperCase(),
+        line1: `${document.getElementById('vial').value}${vialUnit} COA / ${water}ml BAC`,
+        line2: `${concentration.toFixed(2)}mg / ml | ${originalDoseStr}${originalDoseUnitDisplay} = ${units}u (${volumeMl.toFixed(3)}ml)`,
+        date: new Date(document.getElementById('reconstDate').value).toLocaleDateString('de-DE')
+      };
+
+      document.getElementById('labelSection').style.display = 'block';
     }
+
+    function printLabels() {
+      const data = window.currentLabelData;
+      if (!data) return;
+
+      const container = document.getElementById('printContainer');
+      container.innerHTML = '';
+
+      for (let i = 0; i < 5; i++) {
+        const label = document.createElement('div');
+        label.className = 'print-label';
+        label.innerHTML = `
+          <div class="title">${data.name}</div>
+          <div class="line1">${data.line1}</div>
+          <div class="line2">${data.line2}</div>
+          <div class="date">Reconst. Date | ${data.date}</div>
+        `;
+        container.appendChild(label);
+      }
+
+      window.print();
+    }
+
+    // Add reconstitution date field
+    window.onload = () => {
+      const today = new Date().toISOString().split('T')[0];
+      const dateCard = document.createElement('div');
+      dateCard.className = 'card';
+      dateCard.innerHTML = `
+        <label>Reconstitution Date</label>
+        <input type="date" id="reconstDate" value="${today}">
+      `;
+      document.querySelectorAll('.card')[0].after(dateCard);
+    };
   </script>
 </body>
 </html>
