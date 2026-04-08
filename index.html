@@ -143,7 +143,7 @@
     .doses-info {
       margin-top: 12px;
       font-size: 17px;
-      color: var(--accent);           /* Jetzt orange */
+      color: var(--accent);
       font-weight: 600;
     }
 
@@ -237,13 +237,11 @@
       🧪 Peptide Calculator
     </div>
 
-    <!-- Peptide Name -->
     <div class="card">
       <label>Peptide Name</label>
       <input type="text" id="peptideName" placeholder="e.g. MT2, Semaglutide...">
     </div>
 
-    <!-- Vial Contains -->
     <div class="card">
       <label>Vial contains</label>
       <input type="text" id="vial" placeholder="e.g. 36">
@@ -253,13 +251,11 @@
       </div>
     </div>
 
-    <!-- Bacteriostatic Water -->
     <div class="card">
       <label>Bacteriostatic water (ml)</label>
       <input type="text" id="water" placeholder="e.g. 1.8 or 2">
     </div>
 
-    <!-- Desired Dose -->
     <div class="card">
       <label>Desired Dose</label>
       <input type="text" id="dose" placeholder="e.g. 4 or 250">
@@ -271,7 +267,6 @@
 
     <button id="calcBtn" onclick="calculate()">Calculate</button>
 
-    <!-- Result -->
     <div id="result" class="result">
       <div>Draw up <span id="units" class="units">20</span> Units</div>
       <div style="margin-top: 8px; font-size: 18px; color: #aaa;">
@@ -280,15 +275,14 @@
       <div id="dosesInfo" class="doses-info">Doses in vial: <strong>9</strong></div>
     </div>
 
-    <!-- Label Section -->
     <div id="labelSection" class="label-section" style="display: none;">
       <h2 style="text-align:center; margin:20px 0 12px; color:#ff9500; font-size:18px;">Vial Label (3cm × 1.65cm)</h2>
       
       <div id="labelPreview" class="label-preview">
-        <div style="font-size:22px; font-weight:800; color:#ff9500;" id="previewTitle">MT2</div>
+        <div style="font-size:22px; font-weight:800; color:#ff9500;" id="previewTitle">HGH</div>
         <div style="font-size:14px; font-weight:600;" id="previewLine1">36mg in 1.8ml</div>
         <div style="font-size:13px;" id="previewLine2">20.00mg / ml</div>
-        <div style="font-size:13px;" id="previewLine3">4000mcg = 20u</div>
+        <div style="font-size:13px;" id="previewLine3">4mg = 20u</div>
         <div style="font-size:12px; margin-top:8px; border-top:1px solid #555; padding-top:6px;" id="previewDate">Reconst. Date | 08.04.2026</div>
       </div>
 
@@ -338,7 +332,6 @@
       const peptideName = document.getElementById('peptideName').value.trim() || "Peptide";
 
       const originalDoseStr = document.getElementById('dose').value.trim();
-      const originalDoseUnitDisplay = doseUnit;
 
       if (!vial || !water || !dose || water <= 0) return;
 
@@ -348,6 +341,7 @@
       const concentration = vial / water;
       const volumeMl = dose / concentration;
       const units = Math.round(volumeMl * 100);
+
       const dosesInVial = Math.floor(vial / dose);
 
       document.getElementById('units').textContent = units;
@@ -355,10 +349,11 @@
       document.getElementById('dosesInfo').innerHTML = `Doses in vial: <strong>${dosesInVial}</strong>`;
       document.getElementById('result').style.display = 'block';
 
+      // Label Preview – zeigt exakt die Einheit, die der User gewählt hat
       document.getElementById('previewTitle').textContent = peptideName.toUpperCase();
       document.getElementById('previewLine1').textContent = `${document.getElementById('vial').value}${vialUnit} in ${water}ml`;
       document.getElementById('previewLine2').textContent = `${concentration.toFixed(2)}mg / ml`;
-      document.getElementById('previewLine3').textContent = `${Math.round(dose * 1000)}${doseUnit} = ${units}u`;
+      document.getElementById('previewLine3').textContent = `${originalDoseStr}${doseUnit} = ${units}u`;
       document.getElementById('previewDate').innerHTML = 
         `Reconst. Date | <strong>${new Date(document.getElementById('reconstDate').value).toLocaleDateString('de-DE')}</strong>`;
 
@@ -366,7 +361,7 @@
         name: peptideName.toUpperCase(),
         line1: `${document.getElementById('vial').value}${vialUnit} in ${water}ml`,
         conc: `${concentration.toFixed(2)}mg / ml`,
-        doseLine: `${Math.round(dose * 1000)}${doseUnit} = ${units}u`,
+        doseLine: `${originalDoseStr}${doseUnit} = ${units}u`,
         date: new Date(document.getElementById('reconstDate').value).toLocaleDateString('de-DE')
       };
 
