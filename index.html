@@ -72,7 +72,10 @@
       padding: 16px 18px !important;
       color: white !important;
       font-size: 20px !important;
+      font-weight: 500 !important;
+      box-sizing: border-box !important;
       appearance: none;
+      -webkit-appearance: none;
     }
 
     input[type="date"]::-webkit-calendar-picker-indicator {
@@ -137,6 +140,9 @@
       color: var(--accent);
     }
 
+    /* ====================== PRINTABLE LABELS ====================== */
+    #mainApp { display: block; }
+
     .label-section {
       margin-top: 24px;
     }
@@ -156,12 +162,12 @@
 
     .print-label {
       width: 3cm;
-      height: 1.2cm;
-      border: 2.5px solid #ff9500;
+      height: 1.65cm;
+      border: 3px solid #ff9500;
       border-radius: 8px;
       background: white;
       color: black;
-      padding: 4px 6px;
+      padding: 5px 6px;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
@@ -175,25 +181,22 @@
       font-weight: 800;
       color: #ff9500;
       text-align: center;
-      margin-bottom: 2px;
+      margin-bottom: 1px;
       line-height: 1;
     }
 
-    .print-label .line1 {
-      font-size: 7.2pt;
+    .print-label .line1,
+    .print-label .line2,
+    .print-label .line3 {
+      font-size: 6.8pt;
       font-weight: 600;
       text-align: center;
-      line-height: 1.1;
-    }
-
-    .print-label .line2 {
-      font-size: 6.8pt;
-      text-align: center;
-      line-height: 1.1;
+      line-height: 1.05;
+      margin: 0.4px 0;
     }
 
     .print-label .date {
-      font-size: 6.2pt;
+      font-size: 6pt;
       text-align: center;
       margin-top: 3px;
       border-top: 1px solid #ddd;
@@ -201,9 +204,17 @@
     }
 
     @media print {
-      @page { margin: 0; size: A4 portrait; }
-      body { margin: 0; padding: 10mm 8mm; }
-      #mainApp, #mainApp * { display: none !important; }
+      @page {
+        margin: 0;
+        size: A4 portrait;
+      }
+      body { 
+        margin: 0; 
+        padding: 10mm 8mm; 
+      }
+      #mainApp, #mainApp * { 
+        display: none !important; 
+      }
       #printContainer {
         display: flex !important;
         flex-direction: column;
@@ -246,7 +257,7 @@
     <!-- Bacteriostatic Water -->
     <div class="card">
       <label>Bacteriostatic water (ml)</label>
-      <input type="text" id="water" placeholder="e.g. 2 or 1.8">
+      <input type="text" id="water" placeholder="e.g. 1.8 or 2">
     </div>
 
     <!-- Desired Dose -->
@@ -271,13 +282,14 @@
 
     <!-- Label Section -->
     <div id="labelSection" class="label-section" style="display: none;">
-      <h2 style="text-align:center; margin:20px 0 12px; color:#ff9500; font-size:18px;">Vial Label (3cm × 1.2cm)</h2>
+      <h2 style="text-align:center; margin:20px 0 12px; color:#ff9500; font-size:18px;">Vial Label (3cm × 1.65cm)</h2>
       
       <div id="labelPreview" class="label-preview">
         <div style="font-size:22px; font-weight:800; color:#ff9500;" id="previewTitle">MT2</div>
-        <div style="font-size:14px; font-weight:600;" id="previewLine1"></div>
-        <div style="font-size:13px;" id="previewLine2"></div>
-        <div style="font-size:12px; margin-top:8px; border-top:1px solid #555; padding-top:6px;" id="previewDate"></div>
+        <div style="font-size:14px; font-weight:600;" id="previewLine1">36mg in 1.8ml</div>
+        <div style="font-size:13px;" id="previewLine2">20.00mg / ml</div>
+        <div style="font-size:13px;" id="previewLine3">4000mcg = 20u</div>
+        <div style="font-size:12px; margin-top:8px; border-top:1px solid #555; padding-top:6px;" id="previewDate">Reconst. Date | 08.04.2026</div>
       </div>
 
       <button onclick="printLabels()" 
@@ -342,16 +354,17 @@
       document.getElementById('result').style.display = 'block';
 
       document.getElementById('previewTitle').textContent = peptideName.toUpperCase();
-      document.getElementById('previewLine1').textContent = `${document.getElementById('vial').value}${vialUnit} COA / ${water}ml BAC`;
-      document.getElementById('previewLine2').textContent = 
-        `${concentration.toFixed(2)}mg / ml | ${originalDoseStr}${originalDoseUnitDisplay} = ${units}u (${volumeMl.toFixed(3)}ml)`;
+      document.getElementById('previewLine1').textContent = `${document.getElementById('vial').value}${vialUnit} in ${water}ml`;
+      document.getElementById('previewLine2').textContent = `${concentration.toFixed(2)}mg / ml`;
+      document.getElementById('previewLine3').textContent = `${Math.round(dose * 1000)}${doseUnit} = ${units}u`;
       document.getElementById('previewDate').innerHTML = 
         `Reconst. Date | <strong>${new Date(document.getElementById('reconstDate').value).toLocaleDateString('de-DE')}</strong>`;
 
       window.currentLabelData = {
         name: peptideName.toUpperCase(),
-        line1: `${document.getElementById('vial').value}${vialUnit} COA / ${water}ml BAC`,
-        line2: `${concentration.toFixed(2)}mg / ml | ${originalDoseStr}${originalDoseUnitDisplay} = ${units}u (${volumeMl.toFixed(3)}ml)`,
+        line1: `${document.getElementById('vial').value}${vialUnit} in ${water}ml`,
+        conc: `${concentration.toFixed(2)}mg / ml`,
+        doseLine: `${Math.round(dose * 1000)}${doseUnit} = ${units}u`,
         date: new Date(document.getElementById('reconstDate').value).toLocaleDateString('de-DE')
       };
 
@@ -371,7 +384,8 @@
         label.innerHTML = `
           <div class="title">${data.name}</div>
           <div class="line1">${data.line1}</div>
-          <div class="line2">${data.line2}</div>
+          <div class="line2">${data.conc}</div>
+          <div class="line3">${data.doseLine}</div>
           <div class="date">Reconst. Date | ${data.date}</div>
         `;
         container.appendChild(label);
@@ -380,11 +394,8 @@
       window.print();
     }
 
-    // Reset all fields on load (except date)
     window.onload = () => {
       const today = new Date().toISOString().split('T')[0];
-
-      // Create date card
       const dateCard = document.createElement('div');
       dateCard.className = 'card';
       dateCard.innerHTML = `
@@ -392,12 +403,6 @@
         <input type="date" id="reconstDate" value="${today}">
       `;
       document.querySelectorAll('.card')[0].after(dateCard);
-
-      // Clear all input fields
-      document.getElementById('peptideName').value = '';
-      document.getElementById('vial').value = '';
-      document.getElementById('water').value = '';
-      document.getElementById('dose').value = '';
     };
   </script>
 </body>
