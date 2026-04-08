@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Peptid Syringe Calculator</title>
+  <title>Peptid Calculator</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
@@ -20,6 +20,7 @@
     h1 {
       text-align: center;
       margin-bottom: 24px;
+      font-size: 24px;
     }
     .card {
       background: #1f1f1f;
@@ -29,121 +30,157 @@
     }
     label {
       display: block;
-      margin-bottom: 6px;
-      font-size: 14px;
-      color: #aaa;
+      margin-bottom: 8px;
+      font-size: 15px;
+      color: #ccc;
     }
-    input {
+    input, select {
       width: 100%;
-      padding: 12px;
+      padding: 14px;
       background: #2a2a2a;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       color: white;
       font-size: 18px;
     }
-    .result {
-      background: #1a3c1a;
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-      margin: 20px 0;
-      font-size: 24px;
-      font-weight: bold;
+    .unit-selector {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
     }
-    button {
+    .unit-selector button {
+      flex: 1;
+      padding: 10px;
+      background: #2a2a2a;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    .unit-selector button.active {
+      background: #2481cc;
+    }
+    button#calcBtn {
       width: 100%;
-      padding: 14px;
+      padding: 16px;
       background: #2481cc;
       color: white;
       border: none;
       border-radius: 10px;
       font-size: 18px;
+      font-weight: 600;
       margin-top: 10px;
+    }
+    .result {
+      background: #1a3c1a;
+      border-radius: 12px;
+      padding: 24px 16px;
+      text-align: center;
+      margin: 24px 0;
+      font-size: 28px;
+      font-weight: bold;
+      display: none;
     }
     .info {
       font-size: 14px;
-      color: #aaa;
+      color: #888;
       text-align: center;
       margin-top: 20px;
-    }
-    .syringe {
-      height: 30px;
-      background: linear-gradient(90deg, #444 50%, #00aaff 50%);
-      border-radius: 8px;
-      margin: 20px 0;
-      position: relative;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🧪 Peptid Calculator</h1>
+    <h1>🧪 Peptid Syringe Calculator</h1>
 
     <div class="card">
       <label>Vial capacity (mg)</label>
-      <input type="number" id="vial" value="36" step="0.1">
+      <input type="text" id="vial" value="36" placeholder="z.B. 36 oder 10,5">
     </div>
 
     <div class="card">
       <label>Bacteriostatic water (ml)</label>
-      <input type="number" id="water" value="1.8" step="0.1">
+      <input type="text" id="water" value="1.8" placeholder="z.B. 1,8 oder 2">
     </div>
 
     <div class="card">
-      <label>Dose (mg)</label>
-      <input type="number" id="dose" value="4" step="0.1">
+      <label>Gewünschte Dosis</label>
+      <input type="text" id="dose" value="4" placeholder="z.B. 4 oder 250">
+      
+      <div class="unit-selector">
+        <button id="btn-mg" class="active" onclick="setUnit('mg')">mg</button>
+        <button id="btn-mcg" onclick="setUnit('mcg')">mcg</button>
+      </div>
     </div>
 
-    <button onclick="calculate()">Berechnen</button>
+    <button id="calcBtn" onclick="calculate()">Berechnen</button>
 
-    <div id="result" class="result" style="display:none;">
-      Ziehe auf <span id="units">20</span> Units<br>
-      <small style="font-size:16px;">entspricht <span id="ml">0.2</span> ml</small>
+    <div id="result" class="result">
+      <div>Ziehe <span id="units" style="color:#4ade80">20</span> Units auf</div>
+      <div style="font-size:16px; margin-top:8px; color:#aaa;">
+        entspricht <span id="ml">0,20</span> ml
+      </div>
     </div>
 
     <div class="info">
-      Empfohlene Spritzen: 0.3 ml, 0.5 ml oder 1 ml<br>
-      (100 Units = 1 ml)
+      100 Units = 1 ml<br>
+      Empfohlene Spritzen: 0,3 ml / 0,5 ml / 1 ml
     </div>
   </div>
 
   <script>
-    // Telegram WebApp initialisieren
     Telegram.WebApp.ready();
     Telegram.WebApp.expand();
 
-    function calculate() {
-      const vial = parseFloat(document.getElementById('vial').value);
-      const water = parseFloat(document.getElementById('water').value);
-      const dose = parseFloat(document.getElementById('dose').value);
+    let doseUnit = 'mg';   // Standard: mg
 
-      if (!vial || !water || !dose || water === 0) {
-        alert("Bitte alle Felder korrekt ausfüllen!");
+    function setUnit(unit) {
+      doseUnit = unit;
+      document.getElementById('btn-mg').classList.toggle('active', unit === 'mg');
+      document.getElementById('btn-mcg').classList.toggle('active', unit === 'mcg');
+    }
+
+    // Ersetzt Komma durch Punkt und entfernt ungültige Zeichen
+    function parseNumber(str) {
+      if (!str) return NaN;
+      str = str.trim().replace(',', '.');           // Komma → Punkt
+      str = str.replace(/[^0-9.-]/g, '');           // Nur Zahlen, Punkt und Minus erlauben
+      return parseFloat(str);
+    }
+
+    function calculate() {
+      const vialStr = document.getElementById('vial').value;
+      const waterStr = document.getElementById('water').value;
+      const doseStr = document.getElementById('dose').value;
+
+      const vial = parseNumber(vialStr);
+      const water = parseNumber(waterStr);
+      let dose = parseNumber(doseStr);
+
+      // Wenn irgendwas ungültig ist → nichts tun
+      if (!vial || !water || !dose || water <= 0) {
         return;
       }
 
-      const concentration = vial / water;        // mg/ml
-      const volumeMl = dose / concentration;     // ml für die Dosis
-      const units = Math.round(volumeMl * 100);  // Units (0.01 ml = 1 Unit)
+      // mcg in mg umrechnen
+      if (doseUnit === 'mcg') {
+        dose = dose / 1000;
+      }
 
+      const concentration = vial / water;        // mg/ml
+      const volumeMl = dose / concentration;     // benötigte ml
+      const units = Math.round(volumeMl * 100);  // Units auf Insulin-Spritze
+
+      // Ergebnis anzeigen
       document.getElementById('units').textContent = units;
-      document.getElementById('ml').textContent = volumeMl.toFixed(2);
+      document.getElementById('ml').textContent = volumeMl.toFixed(2).replace('.', ',');
       document.getElementById('result').style.display = 'block';
 
-      // Optional: leichte Vibration bei Telegram
+      // leichte Vibration
       if (Telegram.WebApp.HapticFeedback) {
-        Telegram.WebApp.HapticFeedback.impactOccurred("medium");
+        Telegram.WebApp.HapticFeedback.impactOccurred("light");
       }
     }
-
-    // Automatisch berechnen wenn man tippt
-    document.querySelectorAll('input').forEach(input => {
-      input.addEventListener('input', calculate);
-    });
-
-    // Erste Berechnung
-    window.onload = calculate;
   </script>
 </body>
 </html>
