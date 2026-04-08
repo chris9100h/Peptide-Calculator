@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Peptid Syringe Calculator</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f0f0f;
+      color: #fff;
+      margin: 0;
+      padding: 16px;
+    }
+    .container {
+      max-width: 420px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .card {
+      background: #1f1f1f;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+      color: #aaa;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      background: #2a2a2a;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 18px;
+    }
+    .result {
+      background: #1a3c1a;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      margin: 20px 0;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #2481cc;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      margin-top: 10px;
+    }
+    .info {
+      font-size: 14px;
+      color: #aaa;
+      text-align: center;
+      margin-top: 20px;
+    }
+    .syringe {
+      height: 30px;
+      background: linear-gradient(90deg, #444 50%, #00aaff 50%);
+      border-radius: 8px;
+      margin: 20px 0;
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 Peptid Calculator</h1>
+
+    <div class="card">
+      <label>Vial capacity (mg)</label>
+      <input type="number" id="vial" value="36" step="0.1">
+    </div>
+
+    <div class="card">
+      <label>Bacteriostatic water (ml)</label>
+      <input type="number" id="water" value="1.8" step="0.1">
+    </div>
+
+    <div class="card">
+      <label>Dose (mg)</label>
+      <input type="number" id="dose" value="4" step="0.1">
+    </div>
+
+    <button onclick="calculate()">Berechnen</button>
+
+    <div id="result" class="result" style="display:none;">
+      Ziehe auf <span id="units">20</span> Units<br>
+      <small style="font-size:16px;">entspricht <span id="ml">0.2</span> ml</small>
+    </div>
+
+    <div class="info">
+      Empfohlene Spritzen: 0.3 ml, 0.5 ml oder 1 ml<br>
+      (100 Units = 1 ml)
+    </div>
+  </div>
+
+  <script>
+    // Telegram WebApp initialisieren
+    Telegram.WebApp.ready();
+    Telegram.WebApp.expand();
+
+    function calculate() {
+      const vial = parseFloat(document.getElementById('vial').value);
+      const water = parseFloat(document.getElementById('water').value);
+      const dose = parseFloat(document.getElementById('dose').value);
+
+      if (!vial || !water || !dose || water === 0) {
+        alert("Bitte alle Felder korrekt ausfüllen!");
+        return;
+      }
+
+      const concentration = vial / water;        // mg/ml
+      const volumeMl = dose / concentration;     // ml für die Dosis
+      const units = Math.round(volumeMl * 100);  // Units (0.01 ml = 1 Unit)
+
+      document.getElementById('units').textContent = units;
+      document.getElementById('ml').textContent = volumeMl.toFixed(2);
+      document.getElementById('result').style.display = 'block';
+
+      // Optional: leichte Vibration bei Telegram
+      if (Telegram.WebApp.HapticFeedback) {
+        Telegram.WebApp.HapticFeedback.impactOccurred("medium");
+      }
+    }
+
+    // Automatisch berechnen wenn man tippt
+    document.querySelectorAll('input').forEach(input => {
+      input.addEventListener('input', calculate);
+    });
+
+    // Erste Berechnung
+    window.onload = calculate;
+  </script>
+</body>
+</html>
