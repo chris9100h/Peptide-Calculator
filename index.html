@@ -127,7 +127,7 @@
       background: var(--card);
       border: 2px solid var(--accent);
       border-radius: 16px;
-      padding: 26px 20px;
+      padding: 24px 20px;
       text-align: center;
       margin: 20px 0;
       display: none;
@@ -135,12 +135,19 @@
     }
 
     .result .units {
-      font-size: 48px;
+      font-size: 42px;
       font-weight: 800;
       color: var(--accent);
     }
 
-    /* ====================== PRINTABLE LABELS ====================== */
+    .doses-info {
+      margin-top: 12px;
+      font-size: 17px;
+      color: var(--accent);           /* Jetzt orange */
+      font-weight: 600;
+    }
+
+    /* Print Labels */
     #mainApp { display: block; }
 
     .label-section {
@@ -204,17 +211,9 @@
     }
 
     @media print {
-      @page {
-        margin: 0;
-        size: A4 portrait;
-      }
-      body { 
-        margin: 0; 
-        padding: 10mm 8mm; 
-      }
-      #mainApp, #mainApp * { 
-        display: none !important; 
-      }
+      @page { margin: 0; size: A4 portrait; }
+      body { margin: 0; padding: 10mm 8mm; }
+      #mainApp, #mainApp * { display: none !important; }
       #printContainer {
         display: flex !important;
         flex-direction: column;
@@ -244,10 +243,10 @@
       <input type="text" id="peptideName" placeholder="e.g. MT2, Semaglutide...">
     </div>
 
-    <!-- Vial Capacity -->
+    <!-- Vial Contains -->
     <div class="card">
-      <label>Vial capacity</label>
-      <input type="text" id="vial" placeholder="e.g. 10 or 36">
+      <label>Vial contains</label>
+      <input type="text" id="vial" placeholder="e.g. 36">
       <div class="toggle-group">
         <button id="vial-mg" class="toggle-btn active" onclick="setVialUnit('mg')">mg</button>
         <button id="vial-mcg" class="toggle-btn" onclick="setVialUnit('mcg')">mcg</button>
@@ -275,9 +274,10 @@
     <!-- Result -->
     <div id="result" class="result">
       <div>Draw up <span id="units" class="units">20</span> Units</div>
-      <div style="margin-top: 10px; font-size: 18px; color: #aaa;">
+      <div style="margin-top: 8px; font-size: 18px; color: #aaa;">
         corresponds to <span id="ml">0.200</span> ml
       </div>
+      <div id="dosesInfo" class="doses-info">Doses in vial: <strong>9</strong></div>
     </div>
 
     <!-- Label Section -->
@@ -348,9 +348,11 @@
       const concentration = vial / water;
       const volumeMl = dose / concentration;
       const units = Math.round(volumeMl * 100);
+      const dosesInVial = Math.floor(vial / dose);
 
       document.getElementById('units').textContent = units;
       document.getElementById('ml').textContent = volumeMl.toFixed(3);
+      document.getElementById('dosesInfo').innerHTML = `Doses in vial: <strong>${dosesInVial}</strong>`;
       document.getElementById('result').style.display = 'block';
 
       document.getElementById('previewTitle').textContent = peptideName.toUpperCase();
