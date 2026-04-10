@@ -336,36 +336,37 @@
       const BW = BR - BL, BH = BB - BT;
       const MY = (BT + BB) / 2; // midpoint Y = 26
 
+      // Liquid fills from needle (right) leftward — 0 is at needle/right, 100 at plunger/left
       const fillW = pct * BW;
-      const discX = BL + fillW;
+      const discX = BR - fillW; // plunger disc = left boundary of liquid
       const overRange = units > maxU;
       const fillColor = overRange ? '#e74c3c' : '#ff9500';
 
-      // Tick marks inside barrel (every 10 units)
+      // Tick marks: 0 at right (BR), 100 at left (BL)
       let ticks = '';
       for (let i = 0; i <= 10; i++) {
-        const tx = (BL + (i / 10) * BW).toFixed(1);
+        const tx = (BR - (i / 10) * BW).toFixed(1);
         const isMajor = i % 5 === 0;
         const tickH = isMajor ? 9 : 5;
         ticks += `<line x1="${tx}" y1="${BB}" x2="${tx}" y2="${(BB - tickH).toFixed(1)}" stroke="#2a2a2a" stroke-width="${isMajor ? 1.5 : 1}"/>`;
       }
 
-      // Scale labels every 20 units
+      // Scale labels every 20 units: 0 at right, 100 at left
       let labels = '';
       for (let i = 0; i <= 5; i++) {
         const lu = i * 20;
-        const lx = (BL + (i / 5) * BW).toFixed(1);
+        const lx = (BR - (i / 5) * BW).toFixed(1);
         labels += `<text x="${lx}" y="${BB + 12}" text-anchor="middle" font-size="8" fill="#555">${lu}</text>`;
       }
 
-      // Keep the label bubble inside the barrel bounds
+      // Keep the units label inside the barrel bounds
       const labelX = Math.min(Math.max(discX, BL + 14), BR - 14).toFixed(1);
 
       const svg = `<svg viewBox="0 0 300 56" style="width:100%;overflow:visible;">
         <!-- Barrel background -->
         <rect x="${BL}" y="${BT}" width="${BW}" height="${BH}" rx="3" fill="#111" stroke="#3a3a3a" stroke-width="1.5"/>
-        <!-- Liquid fill -->
-        ${fillW > 1 ? `<rect x="${(BL + 1).toFixed(1)}" y="${(BT + 1).toFixed(1)}" width="${(fillW - 1).toFixed(1)}" height="${(BH - 2).toFixed(1)}" rx="2" fill="${fillColor}" opacity="0.88"/>` : ''}
+        <!-- Liquid fill: from disc rightward to needle -->
+        ${fillW > 1 ? `<rect x="${(discX + 1).toFixed(1)}" y="${(BT + 1).toFixed(1)}" width="${(fillW - 1).toFixed(1)}" height="${(BH - 2).toFixed(1)}" rx="2" fill="${fillColor}" opacity="0.88"/>` : ''}
         <!-- Tick marks -->
         ${ticks}
         <!-- Scale labels -->
