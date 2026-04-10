@@ -269,7 +269,8 @@
 
     <div id="result" class="result">
       <div>Draw up <span id="units" class="units">20</span> Units</div>
-      <div style="margin-top: 8px; font-size: 18px; color: #aaa;">
+      <div id="syringeContainer" style="margin: 18px 0 10px; padding: 0 4px;"></div>
+      <div style="margin-top: 4px; font-size: 18px; color: #aaa;">
         corresponds to <span id="ml">0.200</span> ml
       </div>
       <div id="dosesInfo" class="doses-info">Doses in vial: <strong>9</strong></div>
@@ -325,6 +326,69 @@
       return parseFloat(str);
     }
 
+    function renderSyringe(units) {
+      const maxU = 100;
+      const cappedU = Math.min(units, maxU);
+      const pct = cappedU / maxU;
+
+      // Barrel geometry
+      const BL = 14, BR = 256, BT = 14, BB = 38;
+      const BW = BR - BL, BH = BB - BT;
+      const MY = (BT + BB) / 2; // midpoint Y = 26
+
+      const fillW = pct * BW;
+      const discX = BL + fillW;
+      const overRange = units > maxU;
+      const fillColor = overRange ? '#e74c3c' : '#ff9500';
+
+      // Tick marks inside barrel (every 10 units)
+      let ticks = '';
+      for (let i = 0; i <= 10; i++) {
+        const tx = (BL + (i / 10) * BW).toFixed(1);
+        const isMajor = i % 5 === 0;
+        const tickH = isMajor ? 9 : 5;
+        ticks += `<line x1="${tx}" y1="${BB}" x2="${tx}" y2="${(BB - tickH).toFixed(1)}" stroke="#2a2a2a" stroke-width="${isMajor ? 1.5 : 1}"/>`;
+      }
+
+      // Scale labels every 20 units
+      let labels = '';
+      for (let i = 0; i <= 5; i++) {
+        const lu = i * 20;
+        const lx = (BL + (i / 5) * BW).toFixed(1);
+        labels += `<text x="${lx}" y="${BB + 12}" text-anchor="middle" font-size="8" fill="#555">${lu}</text>`;
+      }
+
+      // Keep the label bubble inside the barrel bounds
+      const labelX = Math.min(Math.max(discX, BL + 14), BR - 14).toFixed(1);
+
+      const svg = `<svg viewBox="0 0 300 56" style="width:100%;overflow:visible;">
+        <!-- Barrel background -->
+        <rect x="${BL}" y="${BT}" width="${BW}" height="${BH}" rx="3" fill="#111" stroke="#3a3a3a" stroke-width="1.5"/>
+        <!-- Liquid fill -->
+        ${fillW > 1 ? `<rect x="${(BL + 1).toFixed(1)}" y="${(BT + 1).toFixed(1)}" width="${(fillW - 1).toFixed(1)}" height="${(BH - 2).toFixed(1)}" rx="2" fill="${fillColor}" opacity="0.88"/>` : ''}
+        <!-- Tick marks -->
+        ${ticks}
+        <!-- Scale labels -->
+        ${labels}
+        <!-- Plunger disc at target -->
+        <rect x="${(discX - 3).toFixed(1)}" y="${(BT - 4).toFixed(1)}" width="6" height="${(BH + 8).toFixed(1)}" rx="2.5" fill="#ddd"/>
+        <!-- Units label above disc -->
+        ${units > 0 ? `<text x="${labelX}" y="${(BT - 9).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="700" fill="${fillColor}">${units}U</text>` : ''}
+        <!-- Needle connector -->
+        <rect x="${BR}" y="${(BT + 5).toFixed(1)}" width="13" height="${(BH - 10).toFixed(1)}" rx="1.5" fill="#555"/>
+        <!-- Needle shaft -->
+        <line x1="${BR + 13}" y1="${MY.toFixed(1)}" x2="293" y2="${MY.toFixed(1)}" stroke="#888" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- Needle tip -->
+        <polygon points="288,${(MY - 3).toFixed(1)} 295,${MY.toFixed(1)} 288,${(MY + 3).toFixed(1)}" fill="#888"/>
+      </svg>`;
+
+      const warning = overRange
+        ? `<div style="color:#e74c3c;font-size:13px;margin-top:6px;text-align:center;">⚠️ Exceeds 100U – use a larger syringe</div>`
+        : '';
+
+      return svg + warning;
+    }
+
     function calculate() {
       let vial = parseNumber(document.getElementById('vial').value);
       const water = parseNumber(document.getElementById('water').value);
@@ -345,6 +409,7 @@
       const dosesInVial = Math.floor(vial / dose);
 
       document.getElementById('units').textContent = units;
+      document.getElementById('syringeContainer').innerHTML = renderSyringe(units);
       document.getElementById('ml').textContent = volumeMl.toFixed(3);
       document.getElementById('dosesInfo').innerHTML = `Doses in vial: <strong>${dosesInVial}</strong>`;
       document.getElementById('result').style.display = 'block';
