@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Peptide Calculator</title>
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='28' font-size='28'%3E%F0%9F%A7%AA%3C/text%3E%3C/svg%3E">
+
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
@@ -147,12 +150,9 @@
       font-weight: 600;
     }
 
-    /* Print Labels */
     #mainApp { display: block; }
 
-    .label-section {
-      margin-top: 24px;
-    }
+    .label-section { margin-top: 24px; }
 
     .label-preview {
       background: var(--card);
@@ -163,9 +163,7 @@
       text-align: center;
     }
 
-    #printContainer {
-      display: none;
-    }
+    #printContainer { display: none; }
 
     .print-label {
       width: 3cm;
@@ -331,18 +329,15 @@
       const cappedU = Math.min(units, maxU);
       const pct = cappedU / maxU;
 
-      // Barrel geometry
       const BL = 14, BR = 256, BT = 14, BB = 38;
       const BW = BR - BL, BH = BB - BT;
-      const MY = (BT + BB) / 2; // midpoint Y = 26
+      const MY = (BT + BB) / 2;
 
-      // Liquid fills from needle (right) leftward — 0 is at needle/right, 100 at plunger/left
       const fillW = pct * BW;
-      const discX = BR - fillW; // plunger disc = left boundary of liquid
+      const discX = BR - fillW;
       const overRange = units > maxU;
       const fillColor = overRange ? '#e74c3c' : '#ff9500';
 
-      // Tick marks: 0 at right (BR), 100 at left (BL)
       let ticks = '';
       for (let i = 0; i <= 10; i++) {
         const tx = (BR - (i / 10) * BW).toFixed(1);
@@ -351,7 +346,6 @@
         ticks += `<line x1="${tx}" y1="${BB}" x2="${tx}" y2="${(BB - tickH).toFixed(1)}" stroke="#2a2a2a" stroke-width="${isMajor ? 1.5 : 1}"/>`;
       }
 
-      // Scale labels every 20 units: 0 at right, 100 at left
       let labels = '';
       for (let i = 0; i <= 5; i++) {
         const lu = i * 20;
@@ -359,27 +353,17 @@
         labels += `<text x="${lx}" y="${BB + 12}" text-anchor="middle" font-size="8" fill="#555">${lu}</text>`;
       }
 
-      // Keep the units label inside the barrel bounds
       const labelX = Math.min(Math.max(discX, BL + 14), BR - 14).toFixed(1);
 
       const svg = `<svg viewBox="0 0 300 56" style="width:100%;overflow:visible;">
-        <!-- Barrel background -->
         <rect x="${BL}" y="${BT}" width="${BW}" height="${BH}" rx="3" fill="#111" stroke="#3a3a3a" stroke-width="1.5"/>
-        <!-- Liquid fill: from disc rightward to needle -->
         ${fillW > 1 ? `<rect x="${(discX + 1).toFixed(1)}" y="${(BT + 1).toFixed(1)}" width="${(fillW - 1).toFixed(1)}" height="${(BH - 2).toFixed(1)}" rx="2" fill="${fillColor}" opacity="0.88"/>` : ''}
-        <!-- Tick marks -->
         ${ticks}
-        <!-- Scale labels -->
         ${labels}
-        <!-- Plunger disc at target -->
         <rect x="${(discX - 3).toFixed(1)}" y="${(BT - 4).toFixed(1)}" width="6" height="${(BH + 8).toFixed(1)}" rx="2.5" fill="#ddd"/>
-        <!-- Units label above disc -->
         ${units > 0 ? `<text x="${labelX}" y="${(BT - 9).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="700" fill="${fillColor}">${units}U</text>` : ''}
-        <!-- Needle connector -->
         <rect x="${BR}" y="${(BT + 5).toFixed(1)}" width="13" height="${(BH - 10).toFixed(1)}" rx="1.5" fill="#555"/>
-        <!-- Needle shaft -->
         <line x1="${BR + 13}" y1="${MY.toFixed(1)}" x2="293" y2="${MY.toFixed(1)}" stroke="#888" stroke-width="2.5" stroke-linecap="round"/>
-        <!-- Needle tip -->
         <polygon points="288,${(MY - 3).toFixed(1)} 295,${MY.toFixed(1)} 288,${(MY + 3).toFixed(1)}" fill="#888"/>
       </svg>`;
 
@@ -395,7 +379,6 @@
       const water = parseNumber(document.getElementById('water').value);
       let dose = parseNumber(document.getElementById('dose').value);
       const peptideName = document.getElementById('peptideName').value.trim() || "Peptide";
-
       const originalDoseStr = document.getElementById('dose').value.trim();
 
       if (!vial || !water || !dose || water <= 0) return;
@@ -406,7 +389,6 @@
       const concentration = vial / water;
       const volumeMl = dose / concentration;
       const units = Math.round(volumeMl * 100);
-
       const dosesInVial = Math.floor(vial / dose);
 
       document.getElementById('units').textContent = units;
@@ -415,12 +397,11 @@
       document.getElementById('dosesInfo').innerHTML = `Doses in vial: <strong>${dosesInVial}</strong>`;
       document.getElementById('result').style.display = 'block';
 
-      // Label Preview – zeigt exakt die Einheit, die der User gewählt hat
       document.getElementById('previewTitle').textContent = peptideName.toUpperCase();
       document.getElementById('previewLine1').textContent = `${document.getElementById('vial').value}${vialUnit} in ${water}ml`;
       document.getElementById('previewLine2').textContent = `${concentration.toFixed(2)}mg / ml`;
       document.getElementById('previewLine3').textContent = `${originalDoseStr}${doseUnit} = ${units}u`;
-      document.getElementById('previewDate').innerHTML = 
+      document.getElementById('previewDate').innerHTML =
         `Reconst. Date | <strong>${new Date(document.getElementById('reconstDate').value).toLocaleDateString('de-DE')}</strong>`;
 
       window.currentLabelData = {
